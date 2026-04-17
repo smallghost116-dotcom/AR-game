@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCTV AR 遊戲 (手機優化版)</title>
+    <!-- 修正庫引用：必須包含完整的版本號與路徑 -->
+    <script src="https://aframe.io"></script>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0) 4px);
+        pointer-events: none; z-index: 10;
+      }
+      #ui {
+        position: absolute; top: 20px; width: 100%;
+        color: #00ff00; font-family: 'Courier New', monospace; z-index: 11; 
+        text-align: center; text-shadow: 0 0 5px #000;
+      }
+      /* 手機端點擊回饋 */
+      .target:active { opacity: 0.5; }
+    </style>
+  </head>
+  <body>
+
+    <div id="overlay"></div>
+    <div id="ui">
+      <div style="font-size: 24px; font-weight: bold;">SCORE: <span id="score">0</span></div>
+      <div style="font-size: 12px; margin-top: 5px;">● REC [CCTV-04 SYSTEM]</div>
+    </div>
+
+    <!-- 
+      重要說明：
+      1. imageTargetSrc 使用的是官方範例檔，方便你直接掃描測試。
+      2. 掃描圖案網址：https://github.io
+    -->
+    <a-scene 
+      mindar-image="imageTargetSrc: https://jsdelivr.net;" 
+      color-space="sRGB" 
+      renderer="colorManagement: true, physicallyCorrectLights" 
+      vr-mode-ui="enabled: false" 
+      device-orientation-permission-ui="enabled: false">
+      
+      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="objects: .selectable"></a-camera>
+
+      <!-- 只有當鏡頭對準目標圖片時，球體才會出現 -->
+      
+        <a-sphere class="selectable" 
+                  position="0 0 0.1" 
+                  radius="0.4" 
+                  color="#ff0000" 
+                  material="emissive: #ff0000; emissiveIntensity: 0.5"
+                  animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 500; loop: true"
+                  onclick="hitTarget(this)">
+        </a-sphere>
+      
+    </a-scene>
+
+    <script>
+      let score = 0;
+      function hitTarget(el) {
+        score += 100;
+        document.getElementById('score').innerText = score;
+        
+        // 播放簡單的視覺回饋（變色）
+        el.setAttribute('color', '#00ff00');
+        setTimeout(() => {
+          el.setAttribute('color', '#ff0000');
+          // 這裡可以加入消失邏輯
+        }, 200);
+      }
+    </script>
+  </body>
+</html>
