@@ -1,75 +1,91 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CCTV AR 遊戲 (手機優化版)</title>
-    <!-- 修正庫引用：必須包含完整的版本號與路徑 -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CCTV AR - 空間追蹤版</title>
+    <!-- 引入 A-Frame 與 AR.js -->
     <script src="https://aframe.io"></script>
-    <script src="https://jsdelivr.net"></script>
+    <script src="https://githack.com"></script>
     <style>
-      body { margin: 0; overflow: hidden; }
-      #overlay {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0) 4px);
-        pointer-events: none; z-index: 10;
-      }
-      #ui {
-        position: absolute; top: 20px; width: 100%;
-        color: #00ff00; font-family: 'Courier New', monospace; z-index: 11; 
-        text-align: center; text-shadow: 0 0 5px #000;
-      }
-      /* 手機端點擊回饋 */
-      .target:active { opacity: 0.5; }
+        body { margin: 0; overflow: hidden; }
+        #overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0) 4px);
+            pointer-events: none; z-index: 10;
+        }
+        #ui {
+            position: absolute; top: 20px; width: 100%; color: #00ff00;
+            font-family: monospace; z-index: 11; text-align: center;
+        }
+        .btn {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            padding: 15px 30px; background: rgba(0, 255, 0, 0.3); border: 2px solid #0f0;
+            color: #fff; z-index: 20; border-radius: 50px; text-transform: uppercase;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
 
     <div id="overlay"></div>
     <div id="ui">
-      <div style="font-size: 24px; font-weight: bold;">SCORE: <span id="score">0</span></div>
-      <div style="font-size: 12px; margin-top: 5px;">● REC [CCTV-04 SYSTEM]</div>
+        <div style="font-size: 24px;">SCORE: <span id="score">0</span></div>
+        <div>[ CCTV-04 WORLD TRACKING ]</div>
     </div>
 
-    <!-- 
-      重要說明：
-      1. imageTargetSrc 使用的是官方範例檔，方便你直接掃描測試。
-      2. 掃描圖案網址：https://github.io
-    -->
-    <a-scene 
-      mindar-image="imageTargetSrc: https://jsdelivr.net;" 
-      color-space="sRGB" 
-      renderer="colorManagement: true, physicallyCorrectLights" 
-      vr-mode-ui="enabled: false" 
-      device-orientation-permission-ui="enabled: false">
-      
-      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="objects: .selectable"></a-camera>
+    <!-- 點擊螢幕生成怪獸的按鈕 -->
+    <button class="btn" onclick="spawnMonster()">生成入侵者</button>
 
-      <!-- 只有當鏡頭對準目標圖片時，球體才會出現 -->
-      
-        <a-sphere class="selectable" 
-                  position="0 0 0.1" 
-                  radius="0.4" 
-                  color="#ff0000" 
-                  material="emissive: #ff0000; emissiveIntensity: 0.5"
-                  animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 500; loop: true"
-                  onclick="hitTarget(this)">
-        </a-sphere>
-      
+    <!-- 
+      arjs 參數：
+      sourceType: webcam (使用手機相機)
+      debugUIEnabled: false (隱藏除錯視窗)
+    -->
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+        
+        <!-- 這是用來渲染 3D 物件的容器 -->
+        
+
+        <!-- 相機 -->
+        
     </a-scene>
 
     <script>
-      let score = 0;
-      function hitTarget(el) {
-        score += 100;
-        document.getElementById('score').innerText = score;
-        
-        // 播放簡單的視覺回饋（變色）
-        el.setAttribute('color', '#00ff00');
-        setTimeout(() => {
-          el.setAttribute('color', '#ff0000');
-          // 這裡可以加入消失邏輯
-        }, 200);
-      }
+        let score = 0;
+
+        function spawnMonster() {
+            const container = document.getElementById('monster-container');
+            
+            // 建立一個球體怪獸
+            const monster = document.createElement('a-sphere');
+            
+            // 隨機位置：在相機前方 2 到 5 公尺，左右偏移 2 公尺
+            const x = (Math.random() - 0.5) * 4;
+            const y = (Math.random() - 0.5) * 2;
+            const z = -(Math.random() * 3 + 2); 
+
+            monster.setAttribute('position', `${x} ${y} ${z}`);
+            monster.setAttribute('radius', '0.4');
+            monster.setAttribute('color', '#ff0000');
+            monster.setAttribute('class', 'target');
+            
+            // 加入呼吸動畫
+            monster.setAttribute('animation', 'property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 500; loop: true');
+            
+            // 點擊事件 (在手機上等同於觸摸)
+            monster.addEventListener('mousedown', function() {
+                score += 100;
+                document.getElementById('score').innerText = score;
+                
+                // 擊中效果：變綠色後消失
+                this.setAttribute('color', '#00ff00');
+                setTimeout(() => {
+                    this.parentNode.removeChild(this);
+                }, 150);
+            });
+
+            container.appendChild(monster);
+        }
     </script>
-  </body>
+</body>
 </html>
